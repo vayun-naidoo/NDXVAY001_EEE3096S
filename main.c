@@ -1,5 +1,3 @@
-//TESTING COMMITS ON GIT
-
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -355,7 +353,7 @@ void setPattern(uint8_t pattern)
 {
 	switch (pattern)
 	{
-	case 0:
+	case 0: //11101001
 		LL_GPIO_SetOutputPin(LED0_GPIO_Port, LED0_Pin);
 		LL_GPIO_SetOutputPin(LED1_GPIO_Port, LED1_Pin);
 	    LL_GPIO_SetOutputPin(LED2_GPIO_Port, LED2_Pin);
@@ -365,7 +363,7 @@ void setPattern(uint8_t pattern)
 	    LL_GPIO_ResetOutputPin(LED6_GPIO_Port, LED6_Pin);
 	    LL_GPIO_SetOutputPin(LED7_GPIO_Port, LED7_Pin);
 	    break;
-	case 1:
+	case 1: //11010010
 		LL_GPIO_SetOutputPin(LED0_GPIO_Port, LED0_Pin);
 		LL_GPIO_SetOutputPin(LED1_GPIO_Port, LED1_Pin);
 		LL_GPIO_ResetOutputPin(LED2_GPIO_Port, LED2_Pin);
@@ -375,7 +373,7 @@ void setPattern(uint8_t pattern)
 		LL_GPIO_SetOutputPin(LED6_GPIO_Port, LED6_Pin);
 		LL_GPIO_ResetOutputPin(LED7_GPIO_Port, LED7_Pin);
 		break;
-	case 2:
+	case 2: //10100100
 		LL_GPIO_SetOutputPin(LED0_GPIO_Port, LED0_Pin);
 		LL_GPIO_ResetOutputPin(LED1_GPIO_Port, LED1_Pin);
 		LL_GPIO_SetOutputPin(LED2_GPIO_Port, LED2_Pin);
@@ -385,7 +383,7 @@ void setPattern(uint8_t pattern)
 		LL_GPIO_ResetOutputPin(LED6_GPIO_Port, LED6_Pin);
 		LL_GPIO_ResetOutputPin(LED7_GPIO_Port, LED7_Pin);
 		break;
-	case 3:
+	case 3: //01001000
 		LL_GPIO_ResetOutputPin(LED0_GPIO_Port, LED0_Pin);
 		LL_GPIO_SetOutputPin(LED1_GPIO_Port, LED1_Pin);
 		LL_GPIO_ResetOutputPin(LED2_GPIO_Port, LED2_Pin);
@@ -395,7 +393,7 @@ void setPattern(uint8_t pattern)
 		LL_GPIO_ResetOutputPin(LED6_GPIO_Port, LED6_Pin);
 		LL_GPIO_ResetOutputPin(LED7_GPIO_Port, LED7_Pin);
 		break;
-	case 4:
+	case 4: //10010000
 		LL_GPIO_SetOutputPin(LED0_GPIO_Port, LED0_Pin);
 		LL_GPIO_ResetOutputPin(LED1_GPIO_Port, LED1_Pin);
 		LL_GPIO_ResetOutputPin(LED2_GPIO_Port, LED2_Pin);
@@ -405,7 +403,7 @@ void setPattern(uint8_t pattern)
 		LL_GPIO_ResetOutputPin(LED6_GPIO_Port, LED6_Pin);
 		LL_GPIO_ResetOutputPin(LED7_GPIO_Port, LED7_Pin);
 		break;
-	case 5:
+	case 5: //00100000
 		LL_GPIO_ResetOutputPin(LED0_GPIO_Port, LED0_Pin);
 		LL_GPIO_ResetOutputPin(LED1_GPIO_Port, LED1_Pin);
 		LL_GPIO_SetOutputPin(LED2_GPIO_Port, LED2_Pin);
@@ -415,7 +413,7 @@ void setPattern(uint8_t pattern)
 		LL_GPIO_ResetOutputPin(LED6_GPIO_Port, LED6_Pin);
 		LL_GPIO_ResetOutputPin(LED7_GPIO_Port, LED7_Pin);
 		break;
-	case 6:
+	case 6: //01000000
 		LL_GPIO_ResetOutputPin(LED0_GPIO_Port, LED0_Pin);
 		LL_GPIO_SetOutputPin(LED1_GPIO_Port, LED1_Pin);
 		LL_GPIO_ResetOutputPin(LED2_GPIO_Port, LED2_Pin);
@@ -425,7 +423,7 @@ void setPattern(uint8_t pattern)
 		LL_GPIO_ResetOutputPin(LED6_GPIO_Port, LED6_Pin);
 		LL_GPIO_ResetOutputPin(LED7_GPIO_Port, LED7_Pin);
 		break;
-	case 7:
+	case 7: //10000000
 		LL_GPIO_SetOutputPin(LED0_GPIO_Port, LED0_Pin);
 		LL_GPIO_ResetOutputPin(LED1_GPIO_Port, LED1_Pin);
 		LL_GPIO_ResetOutputPin(LED2_GPIO_Port, LED2_Pin);
@@ -435,7 +433,7 @@ void setPattern(uint8_t pattern)
 		LL_GPIO_ResetOutputPin(LED6_GPIO_Port, LED6_Pin);
 		LL_GPIO_ResetOutputPin(LED7_GPIO_Port, LED7_Pin);
 		break;
-	case 8:
+	case 8: //00000000
 		LL_GPIO_ResetOutputPin(LED0_GPIO_Port, LED0_Pin);
 		LL_GPIO_ResetOutputPin(LED1_GPIO_Port, LED1_Pin);
 		LL_GPIO_ResetOutputPin(LED2_GPIO_Port, LED2_Pin);
