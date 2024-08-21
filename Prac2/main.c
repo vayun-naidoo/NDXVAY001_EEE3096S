@@ -1,4 +1,4 @@
-//LAST PUSH 2024/08/20 PRAC 2 
+//LAST PUSH 2024/08/21 PRAC 2
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -55,11 +55,17 @@ DMA_HandleTypeDef hdma_tim2_ch1;
 uint32_t Sin_LUT[NS] = {512, 537, 562, 587, 612, 637, 661, 685, 709, 732, 754, 776, 798, 818, 838, 857, 875, 893, 909, 925, 939, 952, 965, 976, 986, 995, 1002, 1009, 1014, 1018, 1021, 1023, 1023, 1022, 1020, 1016, 1012, 1006, 999, 990, 981, 970, 959, 946, 932, 917, 901, 884, 866, 848, 828, 808, 787, 765, 743, 720, 697, 673, 649, 624, 600, 575, 549, 524, 499, 474, 448, 423, 399, 374, 350, 326, 303, 280, 258, 236, 215, 195, 175, 157, 139, 122, 106, 91, 77, 64, 53, 42, 33, 24, 17, 11, 7, 3, 1, 0, 0, 2, 5, 9, 14, 21, 28, 37, 47, 58, 71, 84, 98, 114, 130, 148, 166, 185, 205, 225, 247, 269, 291, 314, 338, 362, 386, 411, 436, 461, 486, 511};
 uint32_t saw_LUT[NS] = {0, 8, 16, 24, 32, 40, 48, 56, 64, 72, 81, 89, 97, 105, 113, 121, 129, 137, 145, 153, 161, 169, 177, 185, 193, 201, 209, 217, 226, 234, 242, 250, 258, 266, 274, 282, 290, 298, 306, 314, 322, 330, 338, 346, 354, 362, 371, 379, 387, 395, 403, 411, 419, 427, 435, 443, 451, 459, 467, 475, 483, 491, 499, 507, 516, 524, 532, 540, 548, 556, 564, 572, 580, 588, 596, 604, 612, 620, 628, 636, 644, 652, 661, 669, 677, 685, 693, 701, 709, 717, 725, 733, 741, 749, 757, 765, 773, 781, 789, 797, 806, 814, 822, 830, 838, 846, 854, 862, 870, 878, 886, 894, 902, 910, 918, 926, 934, 942, 951, 959, 967, 975, 983, 991, 999, 1007, 1015, 1023};
 uint32_t triangle_LUT[NS] = {0, 16, 32, 49, 65, 81, 97, 114, 130, 146, 162, 179, 195, 211, 227, 244, 260, 276, 292, 309, 325, 341, 357, 373, 390, 406, 422, 438, 455, 471, 487, 503, 520, 536, 552, 568, 585, 601, 617, 633, 650, 666, 682, 698, 714, 731, 747, 763, 779, 796, 812, 828, 844, 861, 877, 893, 909, 926, 942, 958, 974, 991, 1007, 1023, 1023, 1007, 991, 974, 958, 942, 926, 909, 893, 877, 861, 844, 828, 812, 796, 779, 763, 747, 731, 714, 698, 682, 666, 650, 633, 617, 601, 585, 568, 552, 536, 520, 503, 487, 471, 455, 438, 422, 406, 390, 373, 357, 341, 325, 309, 292, 276, 260, 244, 227, 211, 195, 179, 162, 146, 130, 114, 97, 81, 65, 49, 32, 16, 0};
+uint8_t currentLUT = 0; //default LUT is the sine wave
+
 
 // TODO: Equation to calculate TIM2_Ticks
-
 uint32_t TIM2_Ticks = 0; // How often to write new LUT value
 uint32_t DestAddress = (uint32_t) &(TIM3->CCR3); // Write LUT TO TIM3->CCR3 to modify PWM duty cycle
+
+
+
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -109,16 +115,18 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   // TODO: Start TIM3 in PWM mode on channel 3
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 
 
   // TODO: Start TIM2 in Output Compare (OC) mode on channel 1.
+  HAL_TIM_OC_Start(&htim2, TIM_CHANNEL_1);
 
 
   // TODO: Start DMA in IT mode on TIM2->CH1; Source is LUT and Dest is TIM3->CCR3; start with Sine LUT
+  HAL_DMA_Start_IT(&hdma_tim2_ch1, (uint32_t)Sin_LUT, (uint32_t)&TIM3->CCR3, NS);
 
 
   // TODO: Write current waveform to LCD ("Sine")
-  delay(3000);
 
   // TODO: Enable DMA (start transfer from LUT to CCR)
 
@@ -352,9 +360,35 @@ void EXTI0_1_IRQHandler(void)
 	// TODO: Disable DMA transfer and abort IT, then start DMA in IT mode with new LUT and re-enable transfer
 	// HINT: Consider using C's "switch" function to handle LUT changes
 
+		static uint32_t lastTick = 0;
+	    uint32_t currentTick = HAL_GetTick();
 
+	    if ((currentTick - lastTick) > 200) // 200 ms debounce time
+	    {
+	        HAL_GPIO_EXTI_IRQHandler(Button0_Pin); // Clear interrupt flag
 
-	HAL_GPIO_EXTI_IRQHandler(Button0_Pin); // Clear interrupt flags
+	        // Change LUT
+	        switch (currentLUT)
+	        {
+	            case 0: //sine wave
+	                currentLUT = 1;
+	                HAL_DMA_Stop(&hdma_tim2_ch1);
+	                HAL_DMA_Start_IT(&hdma_tim2_ch1, (uint32_t)saw_LUT, (uint32_t)&TIM3->CCR3, NS);
+	                break;
+	            case 1: //sawtooth wave
+	                currentLUT = 2;
+	                HAL_DMA_Stop(&hdma_tim2_ch1);
+	                HAL_DMA_Start_IT(&hdma_tim2_ch1, (uint32_t)triangle_LUT, (uint32_t)&TIM3->CCR3, NS);
+	                break;
+	            case 2: //triangle wave
+	                currentLUT = 0;
+	                HAL_DMA_Stop(&hdma_tim2_ch1);
+	                HAL_DMA_Start_IT(&hdma_tim2_ch1, (uint32_t)Sin_LUT, (uint32_t)&TIM3->CCR3, NS);
+	                break;
+	        }
+	        lastTick = currentTick;
+	    }
+
 }
 /* USER CODE END 4 */
 
