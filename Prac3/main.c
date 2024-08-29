@@ -1,3 +1,5 @@
+//NDXVAY001
+//LAST PUSH 2024/08/29
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -59,7 +61,8 @@ TIM_HandleTypeDef htim16;
 /* USER CODE BEGIN PV */
 
 // TODO: Define input variables
-
+volatile uint32_t period = 500;
+volatile uint32_t toggle = 0;
 
 /* USER CODE END PV */
 
@@ -70,10 +73,12 @@ static void MX_ADC_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_TIM6_Init(void);
+
 /* USER CODE BEGIN PFP */
 void EXTI0_1_IRQHandler(void);
 void TIM16_IRQHandler(void);
 void writeLCD(char *char_in);
+void changePeriod(uint32_t newPeriod);
 
 // ADC functions
 uint32_t pollADC(void);
@@ -146,10 +151,10 @@ int main(void)
   {
 
 	// TODO: Poll ADC
-
+	uint32_t adcValue = pollADC();
 
 	// TODO: Get CRR
-  
+	CCR = ADCtoCCR(adcValue);
 
   // Update PWM value
 	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, CCR);
@@ -341,7 +346,7 @@ static void MX_TIM6_Init(void)
   htim6.Instance = TIM6;
   htim6.Init.Prescaler = 8000-1;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 500-1;
+  htim6.Init.Period = period-1;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -445,7 +450,23 @@ static void MX_GPIO_Init(void)
 void EXTI0_1_IRQHandler(void)
 {
 	// TODO: Add code to switch LED7 delay frequency
+	static uint32_t lastTick = 0;
+	uint32_t currentTick = HAL_GetTick();
 	
+	if (currentTick - lastTick > 50)//50ms debounce delay
+	{
+		lastTick = currentTick;
+		if (toggle % 2 == 0)
+		{
+			changePeriod(1000);
+
+		} else {
+
+			changePeriod(500);
+		}
+
+		toggle++; //increment toggle so that it can change between 2Hz default and 1Hz
+	}
   
 
 	HAL_GPIO_EXTI_IRQHandler(Button0_Pin); // Clear interrupt flags
@@ -458,6 +479,14 @@ void TIM6_IRQHandler(void)
 
 	// Toggle LED7
 	HAL_GPIO_TogglePin(GPIOB, LED7_Pin);
+}
+
+void changePeriod(uint32_t newPeriod)
+{
+	period = newPeriod;
+	__HAL_TIM_SET_AUTORELOAD(&htim6, period-1);
+	HAL_TIM_Base_Stop_IT(&htim6);
+	HAL_TIM_Base_Start_IT(&htim6);
 }
 
 void TIM16_IRQHandler(void)
@@ -493,8 +522,9 @@ uint32_t pollADC(void){
 // Calculate PWM CCR value
 uint32_t ADCtoCCR(uint32_t adc_val){
   // TODO: Calculate CCR value (val) using an appropriate equation
-
-	//return val;
+	uint32_t ARR = __HAL_TIM_GET_AUTORELOAD(&htim3); //get ARR value
+	uint32_t val = (adc_val * ARR) / 4095;
+	return val;
 }
 
 void ADC1_COMP_IRQHandler(void)
