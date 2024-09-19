@@ -53,7 +53,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc;
-
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim16;
@@ -63,6 +62,10 @@ TIM_HandleTypeDef htim16;
 // TODO: Define input variables
 volatile uint32_t period = 500;
 volatile uint32_t toggle = 0;
+volatile uint8_t byteCount = 0;
+
+//170,85,204,51,240,15
+uint8_t writeArray[6] = {0b10101010, 0b01010101, 0b11001100, 0b00110011, 0b11110000, 0b00001111};
 
 /* USER CODE END PV */
 
@@ -131,7 +134,7 @@ int main(void)
 
   // Initialise LCD
   init_LCD();
-
+  writeLCD("EEEPROM byte:");
   // Start timers
   HAL_TIM_Base_Start_IT(&htim6);
   HAL_TIM_Base_Start_IT(&htim16);
@@ -141,8 +144,12 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3); // Start PWM on TIM3 Channel 3
 
   // TODO: Write all bytes to EEPROM using "write_to_address"
-  
-  
+  for (int i = 0x00; i <= 0x05; i++)
+  {
+	  write_to_address(i, writeArray[i]);
+  }
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -152,12 +159,11 @@ int main(void)
 
 	// TODO: Poll ADC
 	uint32_t adcValue = pollADC();
-
 	// TODO: Get CRR
 	CCR = ADCtoCCR(adcValue);
-
-  // Update PWM value
+	// Update PWM value
 	__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, CCR);
+	HAL_Delay(1); //added so that the processor can think
 
     /* USER CODE END WHILE */
 
@@ -465,7 +471,7 @@ void EXTI0_1_IRQHandler(void)
 			changePeriod(500);
 		}
 
-		toggle++; //increment toggle so that it can change between 2Hz default and 1Hz
+		toggle = (toggle + 1) % 2; //increment toggle so that it can change between 2Hz default and 1Hz
 	}
   
 
@@ -492,9 +498,21 @@ void changePeriod(uint32_t newPeriod)
 void TIM16_IRQHandler(void)
 {
 	// Acknowledge interrupt
+	lcd_command(CLEAR);
 	HAL_TIM_IRQHandler(&htim16);
 
+	writeLCD("EEPROM byte:");
+	lcd_command(LINE_TWO);
 	// TODO: Initialise a string to output second line on LCD
+	uint8_t num = read_from_address(byteCount);
+	char message[6];
+	message[0] = '\0';
+	sprintf(message, "%u", num);
+	if (num == writeArray[byteCount])
+	{writeLCD(message);}
+	else {writeLCD("SPI ERROR!");}
+
+	byteCount = (byteCount + 1) % 6;
 
 
 	// TODO: Change LED pattern; output 0x01 if the read SPI data is incorrect
@@ -505,8 +523,12 @@ void TIM16_IRQHandler(void)
 
 // TODO: Complete the writeLCD function
 void writeLCD(char *char_in){
-  delay(3000);
+  for (int i = 0; i < strlen(char_in); i++)
+  {
+	  lcd_putchar(char_in[i]);
+  }
 	
+
   
 }
 
@@ -522,7 +544,7 @@ uint32_t pollADC(void){
 // Calculate PWM CCR value
 uint32_t ADCtoCCR(uint32_t adc_val){
   // TODO: Calculate CCR value (val) using an appropriate equation
-	uint32_t ARR = __HAL_TIM_GET_AUTORELOAD(&htim3); //get ARR value
+	uint32_t ARR = 47999; //get ARR value
 	uint32_t val = (adc_val * ARR) / 4095;
 	return val;
 }
